@@ -162,8 +162,41 @@ var agecatCenters = { // Center locations of the bubbles.
     'mehr als 5h': 900
   };
     
+// Fünfter Button: Sorgenbarometer
+  var sorgenCenters = { // Center locations of the bubbles. 
+    '1': { x: 330, y: height / 1.9  },
+    '2': { x: 450, y: height / 1.9  },
+    '3': { x: 600, y: height / 2  },
+    '4': { x: 750, y: height / 2  }
+    
+  };
 
-       
+  var sorgenTitleX = {  // X locations of the year titles.
+    'Stimmt ganz': 150,
+    'Stimmt eher': 350,
+    'Stimmt nicht': 600,
+    'Stimmt gar nicht': 900
+    
+  };
+ 
+    // Sechster Button: Griffweitenbarometer
+    
+  var griffweiteCenters = { // Center locations of the bubbles. 
+    'Ja': { x: 220, y: height / 2 },
+    'Eher Ja': { x: 320, y: height / 2 },
+    'Eher Nein': { x: 430, y: height / 2 },
+    'Nein': { x: 550, y: height / 2 }
+  };
+
+  var griffTitleX = {  // X locations of the year titles.
+    'bis 1h': 40,
+    '1h bis 2h': 160,
+    '2h bis 3h': 330,
+    '3h bis 4h': 540,
+    '4h bis 5h': 730,
+    'mehr als 5h': 900
+  };
+    
     
 //* ------------------------------------------------------------------
 //
@@ -230,7 +263,8 @@ var agecatCenters = { // Center locations of the bubbles.
           
         sex: d.geschlecht,
           
-       
+    sorgen: d.sorgenbarometerkat, //Sorgen Import 1,2,3,4
+    sorgentext: d.sorgenbarometer, //Sorgen Import Texte
         
         x: Math.random() * 900,
         y: Math.random() * 800
@@ -327,7 +361,7 @@ var agecatCenters = { // Center locations of the bubbles.
     hideAgecat();
     hideSex();
     hideScreentime();
-
+    hideSorgen();
     
     force.on('tick', function (e) {
       bubbles.each(moveToCenter(e.alpha))
@@ -369,6 +403,7 @@ Die Positionierung basiert auf dem alpha Parameter des force layouts und wird kl
     hideAgecat();
     hideSex();
     hideScreentime();
+    hideSorgen();
 
 
     force.on('tick', function (e) {
@@ -417,6 +452,7 @@ function moveToYear(alpha) {
     hideYear();
     hideSex();
     hideScreentime();
+    hideSorgen();
 
 
     force.on('tick', function (e) {
@@ -465,7 +501,7 @@ function moveToAgecat(alpha) {
     hideYear();
     hideAgecat();
     hideScreentime();
-
+    hideSorgen();
 
     force.on('tick', function (e) {
       bubbles.each(moveToSex(e.alpha))
@@ -511,8 +547,9 @@ function moveToAgecat(alpha) {
   function splitBubblesintoScreentime() {
     showScreentime();
     hideYear();
-    hideSex();
     hideAgecat();
+    hideSex();
+    hideSorgen();
 
 
     force.on('tick', function (e) {
@@ -552,6 +589,57 @@ function moveToAgecat(alpha) {
 
   
     
+//* ------------------------------------------------------------------
+//
+// Sorgen / Sorgenbarometer
+//
+// -----------------------------------------------------------------*/
+    
+  function splitBubblesintoSorgen() {
+    showSorgen();
+    hideYear();
+    hideAgecat();
+    hideSex();
+    hideScreentime();
+
+
+    force.on('tick', function (e) {
+      bubbles.each(moveToSorgen(e.alpha))
+        .attr('cx', function (d) { return d.x; })
+        .attr('cy', function (d) { return d.y; });
+    });
+
+    force.start();
+  }
+
+  function moveToSorgen(alpha) {
+    return function (d) {
+      var target = sorgenCenters[d.sorgen];
+      d.x = d.x + (target.x - d.x) * damper * alpha * 1.1;
+      d.y = d.y + (target.y - d.y) * damper * alpha * 1.1;
+    };
+  }
+
+  function hideSorgen() {
+    svg.selectAll('.sorgen').remove();
+  }
+
+  function showSorgen() {
+
+    var sorgenData = d3.keys(sorgenTitleX);
+    var sorgen = svg.selectAll('.sorgen')
+      .data(sorgenData);
+
+    sorgen.enter().append('text')
+      .attr('class', 'sorgen')
+      .attr('x', function (d) { return sorgenTitleX[d]; })
+      .attr('y', 65)
+      .attr('text-anchor', 'middle')
+      .text(function (d) { return d; });
+    }    
+
+  
+    
     
 //* ------------------------------------------------------------------
 //
@@ -578,6 +666,8 @@ function moveToAgecat(alpha) {
       splitBubblesintoSex();
     } else if (displayName === 'screentime') {
       splitBubblesintoScreentime();
+     } else if (displayName === 'sorgen') {
+      splitBubblesintoSorgen();
     } else {
       groupBubbles();
     }
@@ -624,9 +714,14 @@ function moveToAgecat(alpha) {
                   '<span class="name">Bildschirmzeit: </span><span class="value">' +
                   d.screentime +
                   '</span><br/>' +
-                  '<span class="name">"Umfragejahr": </span><span class="value">' +
-                  d.year +
-                  '</span>';
+        
+                '<span class="name">"Ich mache mir Sorgen um meine Daten": </span><span class="value">' +
+                d.sorgentext +
+                '</span><br/>' +
+        
+                '<span class="name">"Umfragejahr": </span><span class="value">' +
+                d.year +
+                '</span>';
     tooltip2.showtooltip2(content, d3.event);
   }
 
